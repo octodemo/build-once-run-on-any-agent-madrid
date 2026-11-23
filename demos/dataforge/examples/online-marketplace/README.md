@@ -24,7 +24,7 @@ pull request out, with Dataforge running in the GitHub Copilot app.
 | --- | --- |
 | `dataforge.manifest.yaml` | The seed manifest. A few lines of config; everything else is discovered. |
 | `seed.py` | Builds the warehouse. `--check` verifies an existing one. |
-| `marketplace_metric_store/` | The metric store `forge-init` scans to learn the house style. `Order` is built; `Dispatch` is what the demo builds. |
+| `marketplace_metric_store/` | The metric store `forge-init` scans to learn the house style. `Order` is seeded; the demo builds `Dispatch`. |
 | `issues/` | The issue body used as intake for the demo. |
 | `warehouse/` | Generated DuckDB files. Not committed. |
 
@@ -38,7 +38,7 @@ one region is a real sequence rather than a duplicated command.
 | Fulfilment centre | Madrid Este | Madrid Oeste |
 | Merchants | 12 | 6 |
 | Source tables | `merchants`, `orders`, `dispatch_attempts` | same |
-| Built entities | `Order` only | `Order` only |
+| Seeded entities | `Order` only | `Order` only |
 
 - `merchants`: the businesses that sell on the marketplace.
 - `orders`: one row per order — who sold it, when it was placed, when (if ever)
