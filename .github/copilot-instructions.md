@@ -9,7 +9,7 @@ and one runnable demo.
   next to it. The template under `demos/dataforge/assets/` is not this
   project's manifest.
 - Issues and pull requests for the demo belong in
-  `octodemo/build-once-run-on-any-agent`, never the upstream repository this
+  `octodemo/build-once-run-on-any-agent-madrid`, never the upstream repository this
   fork came from.
 - Do not modify files under `acceptance/`; they are human-owned checks.
 - When a script parses DuckDB output, request an explicit format such as
@@ -31,6 +31,6 @@ the metric design (forge-builder Phase 3) and approving the deployment
   allows. Still stop at the Phase 3 design and wait for approval: the presenter
   asks for that stop explicitly.
 - At Phase 7, ask once. Put everything that needs sign-off in one message: the
-  zones in deployment order (east, Sydney East, then west, Sydney West), the
+  zones in deployment order (east, Madrid Este, then west, Madrid Oeste), the
   full SQL of every schema file, and the plan to push the branch and open the
   pull request. One approval covers all of it.
