@@ -14,8 +14,8 @@ import os
 
 ENGINE = os.environ.get("ENGINE", "duckdb")
 
-# Region currently being processed: east (Sydney East fulfilment centre) or
-# west (Sydney West fulfilment centre). The deploy loop sets this once per
+# Region currently being processed: east (Madrid Este fulfilment centre) or
+# west (Madrid Oeste fulfilment centre). The deploy loop sets this once per
 # region.
 SOURCE_ZONE = os.environ.get("SOURCE_ZONE", "east")
 

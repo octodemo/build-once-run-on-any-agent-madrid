@@ -2,9 +2,9 @@
 The intake artifact for the demo. Create it as a real issue in the octodemo
 fork so forge-builder Phase 1 reads it the way it will in production:
 
-    gh label create metric-request --repo octodemo/build-once-run-on-any-agent \
+    gh label create metric-request --repo octodemo/build-once-run-on-any-agent-madrid \
       --color 0E8A16 --description "Request for a new metric build" --force
-    gh issue create --repo octodemo/build-once-run-on-any-agent \
+    gh issue create --repo octodemo/build-once-run-on-any-agent-madrid \
       --title "Track our 48-hour dispatch promise" \
       --body-file issues/dispatch-promise.md --label metric-request
 
@@ -25,7 +25,7 @@ What we need:
 - Counted per day and as a running total, like the existing Order metrics, so
   the two can sit side by side on the operations dashboard
 - Built in the fulfilment domain, next to the Order metrics, for both regions:
-  east (Sydney East) and west (Sydney West)
+  east (Madrid Este) and west (Madrid Oeste)
 
 The rules, agreed with Operations:
 
@@ -46,7 +46,7 @@ Things we know about the data:
   attempt, so an order that failed twice before it went out has three rows. A
   successful attempt has `outcome = 'dispatched'`; a failed one has
   `outcome = 'failed'`.
-- All timestamps are Sydney time.
+- All timestamps use Madrid local time.
 
 Not in scope for this request: a "currently overdue" backlog view, per-region
 local business days, and anything that needs carrier tracking data. Those are
