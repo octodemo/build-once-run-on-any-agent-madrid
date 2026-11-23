@@ -3,8 +3,8 @@
 
 Creates one .duckdb file per region under warehouse/:
 
-    east.duckdb   Sydney East fulfilment centre
-    west.duckdb   Sydney West fulfilment centre
+    east.duckdb   Madrid Este fulfilment centre
+    west.duckdb   Madrid Oeste fulfilment centre
 
 Each file holds a source schema of raw marketplace data and a target schema
 with the already-built Order metric tables. Every value is generated from a
@@ -37,7 +37,7 @@ TARGET_SCHEMA = "demo_gold_marketplace_metric_store"
 
 # The window ends yesterday, which is what SNAPSHOT_DATE defaults to, so a
 # pipeline run with no arguments lands on data whatever day the demo is given.
-# All timestamps are Sydney time.
+# All timestamps use Madrid local time.
 DAYS = 120
 END_DATE = dt.date.today() - dt.timedelta(days=1)
 START_DATE = END_DATE - dt.timedelta(days=DAYS - 1)

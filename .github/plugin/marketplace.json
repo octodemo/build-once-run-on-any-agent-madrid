@@ -4,7 +4,7 @@
     "name": "octodemo"
   },
   "metadata": {
-    "description": "Plugins used by the Sydney demo of Build once, run on any agent.",
+    "description": "Plugins used by the Madrid demo of Build once, run on any agent.",
     "version": "1.0.0"
   },
   "plugins": [

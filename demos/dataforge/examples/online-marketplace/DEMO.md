@@ -24,14 +24,14 @@ It slows down at the only two moments where a person decides."*
 ## Before you record
 
 You need the GitHub Copilot app, the GitHub CLI signed in with access to
-`octodemo/build-once-run-on-any-agent`, the DuckDB CLI, and Python 3.9+.
+`octodemo/build-once-run-on-any-agent-madrid`, the DuckDB CLI, and Python 3.9+.
 
 Run these from the root of your clone of the repository (the folder that
 contains `README.md` and `demos/`):
 
 ```bash
 brew install duckdb                                   # once, if you don't have it
-gh repo set-default octodemo/build-once-run-on-any-agent
+gh repo set-default octodemo/build-once-run-on-any-agent-madrid
 cd demos/dataforge/examples/online-marketplace
 ./reset.sh --yes                                      # builds a fresh warehouse
 ```
@@ -66,7 +66,8 @@ the new Dispatch entity belongs in `fulfilment`.
 Then, from the repository root, open the issue:
 
 ```bash
-gh issue create --title "Track our 48-hour dispatch promise" \
+gh issue create --repo octodemo/build-once-run-on-any-agent-madrid \
+  --title "Track our 48-hour dispatch promise" \
   --body-file demos/dataforge/examples/online-marketplace/issues/dispatch-promise.md \
   --label metric-request
 ```
@@ -77,7 +78,7 @@ Start recording.
 
 **Canvas: The question.** The marketplace promises that every order leaves a
 fulfilment centre within 48 hours. There are two regions, each with its own
-warehouse: `east` (Sydney East) and `west` (Sydney West).
+warehouse: `east` (Madrid Este) and `west` (Madrid Oeste).
 
 The issue already states the agreed rules — met, missed, cancellations,
 retries, test orders — so the agent has nothing to guess. Tell the same three
@@ -127,7 +128,7 @@ Dataforge shows every table definition in full, the order it will deploy in,
 and its plan to push a branch and open a pull request — then **stops for
 approval**. Nothing has touched a warehouse yet.
 
-> Approve schema changes. Deploy to Sydney East, then Sydney West, then push the branch and open the pull request.
+> Approve schema changes. Deploy to Madrid Este, then Madrid Oeste, then push the branch and open the pull request.
 
 It deploys to `east`, and only after that succeeds, to `west`, loads the last
 30 days, and opens the pull request.
@@ -148,7 +149,7 @@ The pull request triggers two checks:
 Proof Agent's verdict is whatever it says on the day: PASS, FAIL or PARTIAL.
 Read it out as it is. A person decides whether to merge.
 
-In the rehearsal run, [pull request #4](https://github.com/octodemo/build-once-run-on-any-agent/pull/4),
+In the Sydney reference rehearsal run, [octodemo/build-once-run-on-any-agent#4](https://github.com/octodemo/build-once-run-on-any-agent/pull/4),
 the acceptance tests passed in both regions, and Proof Agent returned **FAIL**:
 it flagged that the pipelines insert the runner's date and catalog names into
 SQL with f-strings. That is a fair point and a judgement call at the same
@@ -158,9 +159,10 @@ merge and raise a follow-up to validate `SNAPSHOT_DATE` in the shared runner.
 That is the point of the slide: the tests prove the rules, the AI reviewer
 raises concerns, and a person weighs them.
 
-The two-decision flow was rehearsed from a clean reset with issue #10:
+The Sydney two-decision flow was rehearsed from a clean reset with
+[octodemo/build-once-run-on-any-agent#10](https://github.com/octodemo/build-once-run-on-any-agent/issues/10):
 Dataforge stopped exactly twice, at 3 Design and 7 Deploy, and opened
-[pull request #11](https://github.com/octodemo/build-once-run-on-any-agent/pull/11)
+[octodemo/build-once-run-on-any-agent#11](https://github.com/octodemo/build-once-run-on-any-agent/pull/11)
 (closed; rehearsal only). The acceptance tests passed; Proof Agent returned
 FAIL on the same f-string point.
 
@@ -172,7 +174,7 @@ the issue and may close it as delivered.
 - The four skills are the same files Shishir ships for Claude Code and Cursor,
   loaded unchanged into GitHub Copilot.
 - Everything this business needs is in one manifest. The skills never mention
-  merchants, Sydney or dispatch.
+  merchants, Madrid or dispatch.
 - The canvas is the Copilot-app part. The skills don't know it exists.
 
 ## If something goes wrong
@@ -185,7 +187,7 @@ the issue and may close it as delivered.
 | DuckDB says a file is locked | Close any other `duckdb` session on that warehouse. |
 | Proof Agent posts a timeout | Version 1.1.2 waits a fixed 60 seconds for the review; the workflow uses a fast model to fit. Re-run the job, or show the reference pull request. |
 | Proof Agent posts an authorisation error | The organisation must allow Copilot requests from Actions. Show the reference pull request instead. |
-| Running out of time | Switch to the recording or [pull request #4](https://github.com/octodemo/build-once-run-on-any-agent/pull/4), the completed rehearsal run. |
+| Running out of time | Switch to the recording or [Sydney reference octodemo/build-once-run-on-any-agent#4](https://github.com/octodemo/build-once-run-on-any-agent/pull/4), the completed rehearsal run. |
 
 ## Reset
 

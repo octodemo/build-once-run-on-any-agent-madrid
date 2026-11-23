@@ -20,7 +20,7 @@ project:
   # Issues and pull requests for this demo live in the octodemo fork. Naming it
   # explicitly stops gh from defaulting to the upstream repository it was
   # forked from.
-  repository: "octodemo/build-once-run-on-any-agent"
+  repository: "octodemo/build-once-run-on-any-agent-madrid"
 
 platform:
   # duckdb needs no account and no cluster. Each region is one database file.
@@ -28,8 +28,8 @@ platform:
 
   pipeline_framework: "spark_python"
 
-  # One <zone_id>.duckdb file per region lives here: east.duckdb (Sydney East
-  # fulfilment centre) and west.duckdb (Sydney West fulfilment centre).
+  # One <zone_id>.duckdb file per region lives here: east.duckdb (Madrid Este
+  # fulfilment centre) and west.duckdb (Madrid Oeste fulfilment centre).
   duckdb_dir: "warehouse"
 
 overrides:

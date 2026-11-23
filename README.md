@@ -1,4 +1,4 @@
-# Build once, run on any agent — Sydney demo
+# Build once, run on any agent — Madrid demo
 
 [![Build once, run on any agent — title slide](assets/cover.png)](slides/talk.pdf)
 
@@ -6,12 +6,16 @@
 
 This is a fork of
 [githubevents/build-once-run-on-any-agent](https://github.com/githubevents/build-once-run-on-any-agent),
-prepared for a Sydney delivery of the session. The original talk materials are
+prepared for Universe on the Road Madrid 2026. The original talk materials are
 unchanged. This fork adds **one runnable demo** that joins the talk's two
 examples into a single story: Dataforge builds a data pipeline in the GitHub
 Copilot app, and Proof Agent reviews the resulting pull request.
 
-## Sydney Slides
+This Madrid adaptation is by Marta Lacasta, based on the original session by
+Andrea Griffiths and Shishir Tewari and the Sydney demo adaptation by Kartik
+Gupta.
+
+## Madrid Slides
 
 Link to powerpoint: https://onedrive.cloud.microsoft/:p:/a@3r498cu9/S/cQqhi-uycg__Q7nv0AJu00nkEgUD0zVvpFCIbtIgpvepw04Ejg
 
@@ -21,7 +25,7 @@ Every organisation has a pipeline unique to their use case. Procore created one 
 
 ## The demo in 30 seconds
 
-A fictional Australian online marketplace promises that every order leaves a
+A fictional online marketplace promises that every order leaves a
 fulfilment centre within 48 hours. Operations asks a simple-sounding question
 in a GitHub issue:
 
@@ -31,7 +35,7 @@ in a GitHub issue:
    Tewari's four Dataforge skills — unchanged — learn how this team builds
    metrics, check the issue's business rules against the data, and stop for a
    person twice: to approve the metric design, and to approve the deploy. Then
-   they deploy to Sydney East then Sydney West, and open a pull request.
+   they deploy to Madrid Este then Madrid Oeste, and open a pull request.
 2. **A canvas shows what is happening.** A side panel in the Copilot app shows
    the question, the build and the results, read from real files.
 3. **Someone else checks the work.** On the pull request, human-owned
@@ -41,9 +45,9 @@ in a GitHub issue:
 The scripted walkthrough is
 [`demos/dataforge/examples/online-marketplace/DEMO.md`](demos/dataforge/examples/online-marketplace/DEMO.md).
 
-**A complete rehearsal run** is [pull request #4](https://github.com/octodemo/build-once-run-on-any-agent/pull/4).
+**A Sydney reference rehearsal run** is [octodemo/build-once-run-on-any-agent#4](https://github.com/octodemo/build-once-run-on-any-agent/pull/4).
 Copilot built it with the unchanged Dataforge skills from
-[issue #3](https://github.com/octodemo/build-once-run-on-any-agent/issues/3).
+[octodemo/build-once-run-on-any-agent#3](https://github.com/octodemo/build-once-run-on-any-agent/issues/3).
 The acceptance tests pass in both regions. Proof Agent's advisory review
 returned FAIL, flagging how the pipelines insert dates into SQL — a real
 concern for a person to weigh, not a scripted one. It stays open, unmerged, so
@@ -53,7 +57,7 @@ concern for a person to weigh, not a scripted one. It stays open, unmerged, so
 
 The promise sounds simple, but the edge cases are where reports go wrong. One
 merchant, Harbour Homewares, joined last week, so every one of its orders can be
-checked by hand. Day 7 is yesterday; all times are Sydney time.
+checked by hand. Day 7 is yesterday; all times use Madrid local time.
 
 | Order | What happened | Promise |
 | --- | --- | --- |
@@ -99,7 +103,7 @@ erDiagram
 ```
 
 - **`merchants`**: the businesses that sell on the marketplace. 12 in `east`
-  (Sydney East) and 6 in `west` (Sydney West).
+  (Madrid Este) and 6 in `west` (Madrid Oeste).
 - **`orders`**: one row per order — who sold it, when it was placed, and when it
   was cancelled, if it was. `is_deleted` marks test orders.
 - **`dispatch_attempts`**: one row every time a fulfilment centre tries to send
@@ -157,9 +161,9 @@ flowchart LR
 You need the GitHub Copilot app, the GitHub CLI, the DuckDB CLI and Python 3.9+.
 
 ```bash
-gh repo clone octodemo/build-once-run-on-any-agent
-cd build-once-run-on-any-agent
-gh repo set-default octodemo/build-once-run-on-any-agent
+gh repo clone octodemo/build-once-run-on-any-agent-madrid
+cd build-once-run-on-any-agent-madrid
+gh repo set-default octodemo/build-once-run-on-any-agent-madrid
 cd demos/dataforge/examples/online-marketplace
 python3 seed.py                                   # builds the two regional warehouses
 python3 ../../../../acceptance/online-marketplace/acceptance.py   # checks the starting state
@@ -186,7 +190,7 @@ To try Dataforge without the app, use Copilot CLI with
 
 | Path | Contents |
 | --- | --- |
-| [`demos/dataforge/examples/online-marketplace/`](demos/dataforge/examples/online-marketplace/) | **The Sydney demo project:** data, existing pipeline, issue, run guide and reset script |
+| [`demos/dataforge/examples/online-marketplace/`](demos/dataforge/examples/online-marketplace/) | **The Madrid demo project:** data, existing pipeline, issue, run guide and reset script |
 | [`acceptance/`](acceptance/) | Human-owned acceptance tests for the demo |
 | [`.github/`](.github/) | Copilot settings and plugin marketplace, the Dataforge canvas, and the workflows for the acceptance tests and Proof Agent |
 | [`demos/`](demos/) | The talk's skills, as runnable snapshots |

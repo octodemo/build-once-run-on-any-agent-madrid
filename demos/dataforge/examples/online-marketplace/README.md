@@ -1,8 +1,8 @@
 # online-marketplace
 
 A complete, runnable Dataforge project backed by local DuckDB files, built for
-the Sydney delivery of *Build once, run on any agent*. A fictional Australian
-online marketplace wants to know whether it keeps its promise to dispatch every
+the Madrid delivery of *Build once, run on any agent*. A fictional online
+marketplace wants to know whether it keeps its promise to dispatch every
 order within 48 hours. Everything here is synthetic and generated from a fixed
 seed.
 
@@ -35,7 +35,7 @@ one region is a real sequence rather than a duplicated command.
 
 | | east | west |
 | --- | --- | --- |
-| Fulfilment centre | Sydney East | Sydney West |
+| Fulfilment centre | Madrid Este | Madrid Oeste |
 | Merchants | 12 | 6 |
 | Source tables | `merchants`, `orders`, `dispatch_attempts` | same |
 | Built entities | `Order` only | `Order` only |
@@ -47,8 +47,8 @@ one region is a real sequence rather than a duplicated command.
   order. Some attempts fail before one succeeds, so one order can have several
   rows.
 
-The window is the 120 days ending yesterday, and every timestamp is Sydney
-time. One merchant, Harbour Homewares (east), joined last week and has only
+The window is the 120 days ending yesterday, and every timestamp uses Madrid
+local time. One merchant, Harbour Homewares (east), joined last week and has only
 seven hand-made "story" orders, so every number the demo produces for it can be
 checked by hand.
 
