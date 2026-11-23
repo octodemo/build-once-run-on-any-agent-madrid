@@ -14,10 +14,9 @@ jobs:
     name: Proof Agent review (advisory)
     runs-on: ubuntu-latest
     env:
-      # Proof Agent v1.1.2 waits a fixed 60 seconds for the review. A fast
-      # model keeps typical demo diffs inside that window. Supported setting;
-      # no change to Proof Agent itself.
-      PROOF_AGENT_COPILOT_MODEL: claude-haiku-4.5
+      # Use Haiku 5.5 to reduce review latency; the SDK's default 60-second
+      # wait still applies, and model response times can vary.
+      PROOF_AGENT_COPILOT_MODEL: claude-haiku-5.5
 
     steps:
       - name: Checkout code

@@ -185,7 +185,7 @@ the issue and may close it as delivered.
 | It goes past the design without stopping | Say: *"Stop. Show me the Phase 3 design before you write any code."* |
 | It stops anywhere else | If it's a business question, say: *"Use the rules in the issue and continue."* If the data contradicts the issue, that's a real finding: read it before you answer. |
 | DuckDB says a file is locked | Close any other `duckdb` session on that warehouse. |
-| Proof Agent posts a timeout | Version 1.1.2 waits a fixed 60 seconds for the review; the workflow uses a fast model to fit. Re-run the job, or show the reference pull request. |
+| Proof Agent posts a timeout | Version 1.1.2 uses the SDK's default 60-second wait. The workflow selects Claude Haiku 5.5, but response times vary. Re-run the job, or show the reference pull request. |
 | Proof Agent posts an authorisation error | The organisation must allow Copilot requests from Actions. Show the reference pull request instead. |
 | Running out of time | Switch to the recording or [Sydney reference octodemo/build-once-run-on-any-agent#4](https://github.com/octodemo/build-once-run-on-any-agent/pull/4), the completed rehearsal run. |
 
