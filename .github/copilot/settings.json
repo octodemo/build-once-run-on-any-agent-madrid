@@ -3,7 +3,7 @@
     "build-once-demo": {
       "source": {
         "source": "github",
-        "repo": "octodemo/build-once-run-on-any-agent"
+        "repo": "octodemo/build-once-run-on-any-agent-madrid"
       }
     }
   },
