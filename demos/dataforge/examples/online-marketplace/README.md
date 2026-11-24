@@ -16,7 +16,10 @@ source schema of raw marketplace data and a target schema with the Order metric
 tables already built. No account, no cluster, no credentials.
 
 [DEMO.md](DEMO.md) is the scripted walkthrough: a GitHub issue in, a reviewed
-pull request out, with Dataforge running in the GitHub Copilot app.
+pull request out, with Dataforge running in the GitHub Copilot app. Human-owned
+acceptance tests verify the business results. Advisory GitHub Copilot code
+review can use the repository's `code-review` skill and GitHub MCP context to
+compare the diff with the linked issue; a person decides.
 
 ## What is here
 

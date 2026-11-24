@@ -100,7 +100,7 @@
   ul.plain li { padding: 3px 0; }
   .zones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .arrow { color: var(--muted); }
-  .verdict { font-size: 20px; font-weight: 700; }
+  .review-text { white-space: pre-wrap; overflow-wrap: anywhere; }
   .empty { color: var(--muted); font-style: italic; }
   .bar { height: 8px; background: var(--panel); border-radius: 4px; overflow: hidden; min-width: 60px; }
   .bar span { display: block; height: 100%; background: var(--red); }
@@ -432,21 +432,31 @@
     const g = s.proof.github;
     let pr = `<p class="empty">No pull request yet.</p>`;
     if (g.pr) {
-      const checks = g.pr.checks.length ? g.pr.checks.map((c) => {
-        const advisory = /proof agent/i.test(c.name + c.workflow);
-        const required = /acceptance/i.test(c.name + c.workflow);
-        // An advisory review job "passes" whenever it runs; its verdict is shown separately.
-        const label = advisory ? (c.bucket === "pass" ? "ran" : c.bucket === "fail" ? "did not run" : c.bucket || c.state) : (c.bucket || c.state);
-        const cls = advisory ? (c.bucket === "pending" ? "wait" : "other") : c.bucket === "pass" ? "ok" : c.bucket === "fail" ? "bad" : c.bucket === "pending" ? "wait" : "other";
-        return `<li><span class="badge ${cls}">${esc(label)}</span> ${esc(c.name)}<span class="muted">${required ? " · required" : advisory ? " · advisory" : ""}</span></li>`;
-      }).join("") : '<li class="empty">No checks reported yet.</li>';
-      const pa = g.pr.proofAgent;
-      const verdict = pa ? `<div style="margin-top:12px"><h3>Proof Agent verdict</h3>
-          <div class="verdict"><span class="badge ${pa.verdict === "PASS" ? "ok" : pa.verdict === "FAIL" ? "bad" : "wait"}" style="font-size:16px">${esc(pa.verdict)}</span> <a href="${esc(pa.url)}" target="_blank" rel="noreferrer" style="font-size:13px">read the review</a></div>
-          ${pa.findings?.length ? `<ul class="plain findings">${pa.findings.map((f) => `<li>• ${esc(f)}</li>`).join("")}</ul>` : ""}</div>` : `<p class="empty" style="margin-top:12px">Proof Agent has not commented yet.</p>`;
+      const a = g.pr.acceptance;
+      const checks = a.checks.map((c) => {
+        const cls = c.bucket === "pass" ? "ok" : c.bucket === "fail" ? "bad" : c.bucket === "pending" ? "wait" : "other";
+        const name = c.link ? `<a href="${esc(c.link)}" target="_blank" rel="noreferrer">${esc(c.name)}</a>` : esc(c.name);
+        return `<li><span class="badge ${cls}">${esc(c.bucket)}</span> ${name}</li>`;
+      }).join("");
+      const r = g.pr.copilotReview;
+      const review = `<div style="margin-top:12px"><h3>GitHub Copilot code review · advisory</h3>
+        <p>${esc(r.label)}${r.state ? ` · ${esc(r.state)}` : ""}
+        ${r.url ? ` · <a href="${esc(r.url)}" target="_blank" rel="noreferrer">Read the review</a>` : ""}</p>
+        ${r.summary ? `<details><summary>Review summary</summary><div class="review-text">${esc(r.summary)}</div></details>` : ""}
+        ${r.findings.length ? `<ul class="plain findings">${r.findings.map((f) => `<li>
+          <a href="${esc(f.url)}" target="_blank" rel="noreferrer">${esc(f.path)}${f.line != null ? `:${esc(f.line)}` : " · file comment"}
+          ${f.line != null && f.side ? ` (${esc(f.side)})` : ""}${f.outdated ? " · original location" : ""}</a>
+          <div class="review-text">${esc(f.body)}</div></li>`).join("")}</ul>` : ""}
+        ${r.findingCount > r.findings.length ? `<p class="muted">Showing ${r.findings.length} of ${r.findingCount} inline comments. Read the full review on GitHub.</p>` : ""}
+        ${r.status === "present" && !r.summary && !r.findings.length && !r.error ? '<p class="empty">No summary or inline findings returned. This is not a correctness verdict.</p>' : ""}
+        ${r.error ? `<p class="empty">${esc(r.error)}</p>` : ""}
+        <p class="muted">Open the PR for review requests or in-progress sessions. Skill and MCP use must be verified in comment attribution or review-session logs, where available.</p></div>`;
       pr = `<div><a href="${esc(g.pr.url)}" target="_blank" rel="noreferrer"><strong>#${g.pr.number} ${esc(g.pr.title)}</strong></a> <span class="badge other">${esc(g.pr.state.toLowerCase())}</span></div>
-        <ul class="plain" style="margin-top:8px">${checks}</ul>${verdict}
-        <p class="muted" style="font-size:13px">The acceptance tests are the required check. Proof Agent is an advisory AI review. A person decides.</p>`;
+        <h3 style="margin-top:12px">Human-owned acceptance tests · ${esc(a.status)}</h3>
+        ${a.error ? `<p class="empty">${esc(a.error)}</p>` : ""}
+        <ul class="plain" style="margin-top:8px">${checks}</ul>${review}
+        <p class="muted" style="font-size:13px">Acceptance tests verify expected business results and remain the required demo check. Copilot code review is advisory. A person decides.</p>
+        ${g.error ? `<p class="empty">GitHub context incomplete: ${esc(g.error)}</p>` : ""}`;
     } else if (g.error) {
       pr = `<p class="empty">${esc(g.error)}</p>`;
     }
@@ -464,10 +474,9 @@
     const current = s.build.phases.find((p) => p.status === "current" || p.status === "waiting");
     let text = "Run python seed.py", cls = "chip";
     if (pr) {
-      const v = pr.proofAgent?.verdict;
-      const tests = pr.checks.find((c) => /acceptance/i.test(c.name + c.workflow))?.bucket;
-      text = `PR #${pr.number} · tests ${tests === "pass" ? "pass" : tests === "fail" ? "fail" : "running"}${v ? ` · Proof Agent: ${v}` : ""}`;
-      cls = tests === "fail" ? "chip bad" : tests === "pass" && v === "PASS" ? "chip good" : "chip live";
+      const tests = pr.acceptance.status;
+      text = `PR #${pr.number} · tests ${tests} · Copilot review ${pr.copilotReview.status}`;
+      cls = tests === "fail" ? "chip bad" : "chip live";
     } else if (st.found && current) {
       text = `Phase ${current.n} of 7 · ${current.name}${current.status === "waiting" ? " · waiting for you" : ""}`;
       cls = current.status === "waiting" ? "chip wait" : "chip live";

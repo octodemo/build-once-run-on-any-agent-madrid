@@ -15,11 +15,23 @@ and one runnable demo.
 - When a script parses DuckDB output, request an explicit format such as
   `-json` or `-csv`.
 
+## When performing Copilot code review
+
+- Use `.github/skills/code-review/SKILL.md` to compare the actual diff with the
+  original request. Use the GitHub MCP server to read the issue linked by
+  `Closes #N`, `Fixes #N` or `Resolves #N`; report missing or unreadable context.
+- Keep Dataforge as builder and Copilot code review as independent reviewer.
+  The PR description and author's claims are not implementation evidence.
+- Human-owned acceptance tests verify business results; code review is
+  advisory. Cite file and line evidence, distinguish bugs from unverified
+  requirements, and leave the final decision to a person.
+
 ## The online-marketplace demo: two decisions for a person
 
-The demo is recorded, and a person makes exactly two decisions in it: approving
-the metric design (forge-builder Phase 3) and approving the deployment
-(Phase 7). Everything else should run without stopping.
+The Dataforge build is recorded, and a person makes exactly two decisions during
+the build: approving the metric design (forge-builder Phase 3) and approving
+the deployment (Phase 7). Everything else in the build should run without
+stopping. The final human PR decision follows independent verification/review.
 
 - The GitHub issue and the manifest are the source of truth. The issue states
   the agreed business rules; the seed manifest declares the verbs and the
