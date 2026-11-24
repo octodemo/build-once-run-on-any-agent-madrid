@@ -15,6 +15,10 @@ marketplace_metric_store/
       Schema/                  # table DDL, one file per grain and cadence
       Schema/Alter/            # column additions to existing tables
       README.md                # metric inventory and development history
+    Dispatch/                  # 48-hour dispatch promise entity
+      Code/
+      Schema/
+      README.md
 ```
 
 ## Key numbers
@@ -22,11 +26,13 @@ marketplace_metric_store/
 | | |
 | --- | --- |
 | Domains | 1 (`fulfilment`) |
-| Entities built | 1 (`Order`); `dispatch_attempts` is not modelled yet |
+| Entities built | 2 (`Order`, `Dispatch`) |
+| Metrics | 4 (`place`, `cancel`, `meet`, `miss`) |
 | Grains | 1 (`merchant_id`) |
 | Cadences | 2 (Daily, Cumulative) |
-| Tables per entity | 2 |
+| Tables | 4 (2 per entity) |
 | Zones | 2 (`east`, `west`) |
+| In progress | None |
 
 ## Conventions
 
