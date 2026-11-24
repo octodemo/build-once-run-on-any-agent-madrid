@@ -3,13 +3,16 @@
 One GitHub issue in, one reviewed pull request out. Dataforge's four skills
 run, unchanged, inside the GitHub Copilot app. A canvas beside the chat shows
 what is happening. The pull request then gets two independent checks:
-human-owned acceptance tests and an advisory Proof Agent review.
+human-owned acceptance tests and an advisory GitHub Copilot code review,
+guided by the repository's `code-review` skill and linked-issue MCP context
+when available.
 
 The thing worth watching is not that an agent wrote SQL. It is that four
 skills with no knowledge of this business produce marketplace-correct code,
 because everything they need to know lives in one manifest and one issue —
-and that a person makes exactly two decisions: approve the design, and approve
-the deploy.
+and that a person makes exactly two decisions during the build: approve the
+design, and approve the deploy. After independent verification and review, a
+person still makes the final decision on changes and merging.
 
 ## Presenter note: recorded and sped up
 
@@ -19,12 +22,17 @@ moments where a person decides — **3 Design** and **7 Deploy** — play at
 normal speed.
 
 Say to the audience: *"This is sped up — the real build took about N minutes.
-It slows down at the only two moments where a person decides."*
+It slows down at the two build approvals. Then we review the pull request."*
 
 ## Before you record
 
 You need the GitHub Copilot app, the GitHub CLI signed in with access to
 `octodemo/build-once-run-on-any-agent-madrid`, the DuckDB CLI, and Python 3.9+.
+Complete the [manual GitHub setup](../../../../README.md#github-setup-manual):
+enable Copilot code review and MCP tools for review, confirm issue access, and
+keep **Dispatch promise acceptance tests** required. Request review manually
+or use an available automatic-review setting; no repository file enables these
+settings. Keep review advisory and merging manual.
 
 Run these from the root of your clone of the repository (the folder that
 contains `README.md` and `demos/`):
@@ -102,7 +110,7 @@ come from somewhere other than the skills.
 
 ## Act 2 — The build
 
-> Build the metrics in issue #N. Run the full pipeline with no questions, but stop for my approval at Phase 3 Design and at Phase 7 Deploy.
+> Build the metrics in issue #N. Run the full pipeline with no questions, but stop for my approval at Phase 3 Design and at Phase 7 Deploy. Include Closes #N in the pull request body.
 
 **1 Scope and 2 Discover** run without stopping (sped up). Every query goes
 through `forge-dbx`, which refuses row-level `SELECT *` even against synthetic
@@ -139,32 +147,53 @@ region shows promises met and missed by merchant.
 
 ## Act 3 — Someone else checks the work
 
-The pull request triggers two checks:
+### Second demo: independent review
+
+1. Open the **Dataforge-generated PR in the Madrid repository**. Show
+   `Closes #N` in its body and follow the link to the original issue. The
+   description locates the request; it is not evidence that the code meets it.
+2. Show **Dispatch promise acceptance tests** passing for the PR's current
+   revision in Checks. They are human-owned business verification. If pending
+   or failing, show that honestly; don't narrate a pass.
+3. Under **Reviewers**, request **Copilot**, or open its existing code review.
+   Show [`.github/skills/code-review/SKILL.md`](../../../../.github/skills/code-review/SKILL.md):
+   it asks the independent reviewer to read the issue through the **GitHub MCP
+   server** and compare every requirement with the actual changed files/diff.
+4. Where exposed, show skill and MCP attribution beneath review comments, or
+   open the review session from the PR timeline and inspect its tool logs.
+   Only say the skill or issue context was used when the UI/logs provide that
+   evidence. Configuration alone does not prove use.
+5. Read the actual overview and any inline findings. For each finding shown,
+   open the cited file and line in the diff and explain the evidence. Do not
+   assume Copilot will find a problem or that an older review covers a new push.
+6. Explain: *"The tests check the business results. The reviewer compares the
+   implementation with the request and raises concerns. A person decides
+   whether anything needs changing."* Leave the PR unmerged for this demo.
 
 | Check | What it is | Role |
 | --- | --- | --- |
 | **Dispatch promise acceptance tests** | Human-owned tests in `acceptance/`; expected values computed independently from the source data | Required to merge |
-| **Proof Agent review** | Andrea Griffiths' verifier skill, run by GitHub Actions through the Copilot SDK; it reviews the diff, not the agent's own account of it | Advisory |
+| **GitHub Copilot code review** | Independent review of the implementation against the linked issue; can load the `code-review` skill and GitHub MCP context | Advisory |
 
-Proof Agent's verdict is whatever it says on the day: PASS, FAIL or PARTIAL.
-Read it out as it is. A person decides whether to merge.
+### Narrate the result you actually get
 
-In the Sydney reference rehearsal run, [octodemo/build-once-run-on-any-agent#4](https://github.com/octodemo/build-once-run-on-any-agent/pull/4),
-the acceptance tests passed in both regions, and Proof Agent returned **FAIL**:
-it flagged that the pipelines insert the runner's date and catalog names into
-SQL with f-strings. That is a fair point and a judgement call at the same
-time: the values come from the team's own runner, not from users, and the
-existing Order pipelines use the same pattern. A reasonable decision is to
-merge and raise a follow-up to validate `SNAPSHOT_DATE` in the shared runner.
-That is the point of the slide: the tests prove the rules, the AI reviewer
-raises concerns, and a person weighs them.
+| Observed outcome | What to say |
+| --- | --- |
+| No findings | *"This review did not report a problem. That doesn't prove there are no bugs. We still have the business tests and a person's decision."* |
+| Findings | *"Here is the requirement, and here is the file and line the reviewer flagged. A person checks whether the concern needs a change."* Do not treat every suggestion as a confirmed defect. |
+| Issue context unavailable or use not evidenced | *"We can't verify that this review checked the original request. It can still comment on code, but that part of the review is unverified."* Show the missing link/access/tool evidence; do not substitute the author's summary. |
 
-The Sydney two-decision flow was rehearsed from a clean reset with
-[octodemo/build-once-run-on-any-agent#10](https://github.com/octodemo/build-once-run-on-any-agent/issues/10):
-Dataforge stopped exactly twice, at 3 Design and 7 Deploy, and opened
-[octodemo/build-once-run-on-any-agent#11](https://github.com/octodemo/build-once-run-on-any-agent/pull/11)
-(closed; rehearsal only). The acceptance tests passed; Proof Agent returned
-FAIL on the same f-string point.
+Copilot may produce inline findings and an overview assessment, not Proof
+Agent's PASS/FAIL/PARTIAL format. Review content and skill/MCP selection are not
+deterministic. The canvas only reports observed GitHub review metadata and
+comments; it cannot establish skill/tool use or whether a requested review is
+running. Inspect GitHub for that evidence.
+
+The original Universe talk used Andrea Griffiths' Proof Agent. Its unchanged
+[source/demo materials](../../../proof-agent/) remain available for attribution
+and historical reference, not as evidence of a current Madrid Copilot review.
+This adaptation preserves the independent-review pattern with a different
+review surface.
 
 Dataforge also manages the issue: once the pull request is open, it comments on
 the issue and may close it as delivered.
@@ -185,9 +214,10 @@ the issue and may close it as delivered.
 | It goes past the design without stopping | Say: *"Stop. Show me the Phase 3 design before you write any code."* |
 | It stops anywhere else | If it's a business question, say: *"Use the rules in the issue and continue."* If the data contradicts the issue, that's a real finding: read it before you answer. |
 | DuckDB says a file is locked | Close any other `duckdb` session on that warehouse. |
-| Proof Agent posts a timeout | Version 1.1.2 uses the SDK's default 60-second wait. The workflow selects Claude Haiku 5.5, but response times vary. Re-run the job, or show the reference pull request. |
-| Proof Agent posts an authorisation error | The organisation must allow Copilot requests from Actions. Show the reference pull request instead. |
-| Running out of time | Switch to the recording or [Sydney reference octodemo/build-once-run-on-any-agent#4](https://github.com/octodemo/build-once-run-on-any-agent/pull/4), the completed rehearsal run. |
+| Copilot is unavailable as reviewer | Check organization/repository access and code-review policies using the [setup guide](../../../../README.md#github-setup-manual). Do not replace it with an invented review. |
+| Issue or MCP context unavailable | Check `Closes #N` and the MCP review setting/access. Narrate the limitation, then inspect attribution/session logs after a re-review. |
+| Canvas says review not observed or unavailable | Open the PR. The canvas reads submitted reviews only and reports API/identity limitations explicitly. |
+| Running out of time | Show a recording of an actual Madrid run, clearly identified as recorded. Do not present historical Proof Agent output as a Copilot code review. |
 
 ## Reset
 

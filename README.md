@@ -9,7 +9,8 @@ This is a fork of
 prepared for Universe on the Road Madrid 2026. The original talk materials are
 unchanged. This fork adds **one runnable demo** that joins the talk's two
 examples into a single story: Dataforge builds a data pipeline in the GitHub
-Copilot app, and Proof Agent reviews the resulting pull request.
+Copilot app, and GitHub Copilot code review independently reviews the resulting
+pull request against its linked issue, guided by a repository skill.
 
 This Madrid adaptation is by Marta Lacasta, based on the original session by
 Andrea Griffiths and Shishir Tewari and the Sydney demo adaptation by Kartik
@@ -35,23 +36,27 @@ in a GitHub issue:
    Tewari's four Dataforge skills — unchanged — learn how this team builds
    metrics, check the issue's business rules against the data, and stop for a
    person twice: to approve the metric design, and to approve the deploy. Then
-   they deploy to Madrid Este then Madrid Oeste, and open a pull request.
+   they deploy to Madrid Este then Madrid Oeste, and open a pull request
+   linked to the original issue with `Closes #N`.
 2. **A canvas shows what is happening.** A side panel in the Copilot app shows
    the question, the build and the results, read from real files.
 3. **Someone else checks the work.** On the pull request, human-owned
-   acceptance tests (required) and Andrea Griffiths' Proof Agent (an advisory
-   AI review) run in GitHub Actions. A person decides whether to merge.
+   acceptance tests verify expected business results in GitHub Actions.
+   GitHub Copilot code review can load the `code-review` repository skill and
+   use the GitHub MCP server to compare the issue requirements with the actual
+   diff. It is advisory; a person decides whether findings require a change
+   and whether to merge.
 
 The scripted walkthrough is
 [`demos/dataforge/examples/online-marketplace/DEMO.md`](demos/dataforge/examples/online-marketplace/DEMO.md).
 
-**A Sydney reference rehearsal run** is [octodemo/build-once-run-on-any-agent#4](https://github.com/octodemo/build-once-run-on-any-agent/pull/4).
-Copilot built it with the unchanged Dataforge skills from
-[octodemo/build-once-run-on-any-agent#3](https://github.com/octodemo/build-once-run-on-any-agent/issues/3).
-The acceptance tests pass in both regions. Proof Agent's advisory review
-returned FAIL, flagging how the pipelines insert dates into SQL — a real
-concern for a person to weigh, not a scripted one. It stays open, unmerged, so
-`main` keeps the starting state for the live demo.
+The original Universe talk used Andrea Griffiths' **Proof Agent**. Its original
+source, recordings and attribution are preserved in [`demos/proof-agent/`](demos/proof-agent/).
+Madrid demonstrates the same independent-review pattern with **GitHub Copilot
+code review and a repository skill**, not the external Proof Agent Action.
+Reviews may include inline findings and an overview assessment, rather than
+Proof Agent's PASS/FAIL/PARTIAL format. Neither skill use nor a particular
+finding is guaranteed; inspect the actual review's attribution or session logs.
 
 ## The story
 
@@ -139,9 +144,11 @@ flowchart LR
     I["GitHub issue"] --> A["GitHub Copilot app<br/>with the Dataforge plugin"]
     A <--> C["Dataforge canvas"]
     A -->|"approved by a person:<br/>east, then west"| W[("Regional warehouses")]
-    A --> PR["Pull request"]
+    A --> PR["Pull request<br/>Closes #N"]
     PR --> T["Acceptance tests<br/>required"]
-    PR --> P["Proof Agent<br/>advisory"]
+    PR --> P["Copilot code review<br/>code-review skill · advisory"]
+    P --> M["GitHub MCP server"]
+    M --> I
     T --> H["A person decides"]
     P --> H
 ```
@@ -154,7 +161,7 @@ flowchart LR
 | **Plugin** | Dataforge's package: the same one Claude Code and Cursor install. This repository's settings enable it in Copilot, for this repository only. | [`.github/copilot/settings.json`](.github/copilot/settings.json) |
 | **Canvas** | A side panel in the Copilot app that shows the question, the build and the proof, from real files. It's the Copilot-specific part; the skills don't know it exists. | [`.github/extensions/dataforge-canvas/`](.github/extensions/dataforge-canvas/) |
 | **Acceptance tests** | Human-owned checks. They compute the expected numbers from the agreed rules, independently of the pipeline. Required to merge. | [`acceptance/`](acceptance/) |
-| **Proof Agent** | Andrea Griffiths' verifier skill, run by GitHub Actions through the Copilot SDK. It reviews the diff and gives a PASS, FAIL or PARTIAL verdict with evidence. Advisory. | [`.github/workflows/proof-agent.yml`](.github/workflows/proof-agent.yml) |
+| **Copilot code review** | Independent, advisory review of the diff against the linked issue, using a review-focused repository skill and GitHub MCP context when available. Inline findings cite files and lines; a person decides. | [`.github/skills/code-review/SKILL.md`](.github/skills/code-review/SKILL.md) |
 
 ## Run it yourself
 
@@ -174,17 +181,52 @@ Dataforge canvas"*, and follow [DEMO.md](demos/dataforge/examples/online-marketp
 To try Dataforge without the app, use Copilot CLI with
 `copilot --plugin-dir demos/dataforge`.
 
+### GitHub setup (manual)
+
+Repository files provide guidance; they do **not** enable these GitHub settings.
+Before recording in `octodemo/build-once-run-on-any-agent-madrid`:
+
+1. Confirm **GitHub Copilot code review is enabled** for the organization and
+   repository, with the necessary account access and policies. Keep Copilot
+   approvals off for this advisory demo; leave the final decision to a person.
+2. In repository **Settings → Copilot → MCP servers**, ensure **Allow Copilot
+   to use MCP tools when reviewing pull requests** is enabled. The GitHub MCP
+   server is available by default; confirm its read-only tools can access the
+   linked issue. Local app MCP settings do not configure GitHub-hosted review.
+3. To request a review manually, open the PR and under **Reviewers**, click
+   **Request** next to **Copilot**. Re-request after new commits if needed.
+4. If available for the account, configure automatic reviews in a repository
+   branch ruleset with **Automatically request Copilot code review**, optionally
+   **Review new pushes**. Eligible personal accounts also have **Copilot
+   settings → Code review → Automatic Copilot code review**. Availability and
+   organization policies vary; automatic review is not enabled by this commit.
+5. Keep **Dispatch promise acceptance tests** required in branch protection or
+   a ruleset. An Actions workflow alone does not enforce a merge requirement.
+   Do not enable automatic merging.
+
+[Using Copilot code review](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/use-copilot-agents/use-code-review)
+explains requesting reviews and checking skill/MCP attribution or review-session
+logs. [Agent skills](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/customizations/agent-skills)
+explains repository-scoped, on-demand instructions.
+[MCP setup](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/customize-copilot/configure-mcp-servers)
+covers tool access; [review configuration](https://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/copilot-on-github/set-up-copilot/configure-code-review)
+covers automatic reviews and approvals.
+
 ## What is real, and what isn't
 
 - **Real:** the Dataforge skills, unchanged; Copilot running them; the DuckDB
   queries; the generated code; the pull request; the GitHub Actions runs; and
-  whatever Proof Agent says.
+  whatever GitHub Copilot code review actually reports.
 - **Synthetic:** all of the data. Every merchant, order and customer is
   fictional and generated from a fixed seed.
 - **Local:** the warehouses are DuckDB files on a laptop, not a production
   platform. Nothing is deployed anywhere real.
-- **Not claimed:** time savings, or that Proof Agent will catch any particular
-  problem. The demo shows a process, not a benchmark.
+- **Not claimed:** time savings, guaranteed skill/MCP use, guaranteed findings,
+  or that no findings means no bugs. The demo shows a process, not a benchmark.
+- **Canvas limitation:** it displays submitted review metadata, summaries and
+  inline comments from GitHub, not an invented verdict. Requests/in-progress
+  sessions and skill/MCP use are not inferred. Missing access or review identity
+  is shown as unavailable; see the [canvas notes](.github/extensions/dataforge-canvas/README.md).
 
 ## Repository layout
 
@@ -192,7 +234,7 @@ To try Dataforge without the app, use Copilot CLI with
 | --- | --- |
 | [`demos/dataforge/examples/online-marketplace/`](demos/dataforge/examples/online-marketplace/) | **The Madrid demo project:** data, existing pipeline, issue, run guide and reset script |
 | [`acceptance/`](acceptance/) | Human-owned acceptance tests for the demo |
-| [`.github/`](.github/) | Copilot settings and plugin marketplace, the Dataforge canvas, and the workflows for the acceptance tests and Proof Agent |
+| [`.github/`](.github/) | Copilot instructions, the review skill, plugin marketplace, read-only Dataforge canvas and acceptance workflow |
 | [`demos/`](demos/) | The talk's skills, as runnable snapshots |
 | [`slides/`](slides/) | The original talk deck |
 | [`assets/`](assets/) | Recordings used by the original demos and the site |
@@ -228,5 +270,6 @@ The eight-page session summary is AI-generated by VOXO. For more of Andrea's ski
 - **Slides, recordings, and written content**: [CC BY 4.0](LICENSE-CONTENT). Reuse is welcome with credit to Andrea Griffiths and Shishir Tewari.
 - **Demos** keep their own licences: [proof-agent](demos/proof-agent/LICENSE), [dataforge](demos/dataforge/LICENSE), [proof-review](demos/proof-review/LICENSE).
 
-Dataforge is by Shishir Tewari; Proof Agent is by Andrea Griffiths. Both are
-used here unchanged.
+Dataforge is by Shishir Tewari; Proof Agent is by Andrea Griffiths. Both source
+snapshots remain unchanged. The Madrid review integration is separate from
+those original materials.

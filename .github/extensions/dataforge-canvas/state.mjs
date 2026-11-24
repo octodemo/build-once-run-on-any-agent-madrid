@@ -11,6 +11,7 @@ import { copyFileSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSyn
 import { homedir, tmpdir } from "node:os";
 import { basename, join, relative } from "node:path";
 import { promisify } from "node:util";
+import { readPullRequestEvidence } from "./github.mjs";
 
 const run = promisify(execFile);
 
@@ -552,10 +553,14 @@ export function createState({ repoRoot, exampleDir }) {
         const since = anchor();
         const gh = (args) => command("gh", args, { cwd: repoRoot });
         const parse = (result) => {
-            if (!result.ok) return null;
+            if (!result.ok) {
+                value.error = result.error;
+                return null;
+            }
             try {
                 return JSON.parse(result.stdout);
-            } catch {
+            } catch (error) {
+                value.error = `Could not read GitHub response: ${error.message}`;
                 return null;
             }
         };
@@ -581,30 +586,11 @@ export function createState({ repoRoot, exampleDir }) {
             prNumber = prs.filter((p) => Date.parse(p.createdAt) >= since).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]?.number?.toString() || null;
         }
         if (prNumber) {
-            const pr = parse(await gh(["pr", "view", prNumber, "-R", repo, "--json", "number,title,url,state,headRefName,isDraft"]));
+            const pr = parse(await gh(["pr", "view", prNumber, "-R", repo, "--json", "number,title,url,state,headRefName,headRefOid,isDraft"]));
             if (pr) {
-                const checks = parse(await gh(["pr", "checks", prNumber, "-R", repo, "--json", "name,state,bucket,link,workflow"])) || [];
-                const comments = parse(await gh(["api", `repos/${repo}/issues/${prNumber}/comments?per_page=100`])) || [];
-                const review = [...comments].reverse().find((c) => /Proof Agent Verification/.test(c.body || ""));
-                let proofAgent = null;
-                if (review) {
-                    const verdict = review.body.match(/\*\*(PASS|FAIL|PARTIAL|SKIPPED)\*\*/)?.[1] || "UNKNOWN";
-                    // Headline findings only: section headings and issue or
-                    // severity lines, with markdown removed.
-                    const visible = review.body.split("<details>")[0];
-                    const findings = visible
-                        .split("\n")
-                        .map((line) => line.trim())
-                        .filter((line) => /^#{2,4}\s/.test(line) || /^\*\*(Issue|Severity|Fix)[^*]*:\*\*/.test(line))
-                        .map((line) => line.replace(/^#{2,4}\s+/, "").replace(/\*\*/g, "").replace(/`/g, "").trim())
-                        .filter((line) => line && !/Proof Agent Verification/i.test(line) && !/^\W*(PASS|FAIL|PARTIAL|SKIPPED)\W*$/i.test(line))
-                        .slice(0, 6);
-                    proofAgent = { verdict, url: review.html_url, at: review.created_at, findings };
-                }
                 value.pr = {
                     ...pr,
-                    checks: checks.map((c) => ({ name: c.name, workflow: c.workflow, state: c.state, bucket: c.bucket, link: c.link })),
-                    proofAgent,
+                    ...await readPullRequestEvidence({ repo, number: prNumber, head: pr.headRefOid, gh }),
                 };
             }
         }
@@ -623,8 +609,8 @@ export function createState({ repoRoot, exampleDir }) {
         const current = steps.find((p) => p.status === "current" || p.status === "waiting");
         const issue = githubInfo.issue;
         const pr = githubInfo.pr;
-        const tests = pr?.checks.find((c) => /acceptance/i.test(`${c.name} ${c.workflow}`))?.bucket || null;
-        const verdict = pr?.proofAgent?.verdict || null;
+        const tests = pr?.acceptance.status || "not observed";
+        const review = pr?.copilotReview;
         const facts = manifestInfo.exists ? manifestInfo.facts : null;
         const zoneIds = Object.keys(warehouseInfo.zones || {});
         const deployed = (zone) =>
@@ -668,8 +654,8 @@ export function createState({ repoRoot, exampleDir }) {
                 title: pr ? `Pull request #${pr.number}` : "Pull request",
                 lines: pr
                     ? [
-                          { text: `tests: ${tests || "not run"}`, tone: tests === "pass" ? "good" : tests === "fail" ? "bad" : "muted" },
-                          { text: `Proof Agent: ${verdict || "not yet"}`, tone: verdict === "PASS" ? "good" : verdict === "FAIL" ? "bad" : "muted" },
+                          { text: `tests: ${tests}`, tone: tests === "pass" ? "good" : tests === "fail" ? "bad" : "muted" },
+                          { text: `Copilot review: ${review?.status || "unavailable"}`, tone: "muted" },
                       ]
                     : [{ text: "code + tests, for review", tone: "muted" }],
             },
@@ -706,7 +692,7 @@ export function createState({ repoRoot, exampleDir }) {
             };
             if (latest) now_ = { tone: "active", text: sentences[latest] };
             else if (building) now_ = { tone: "active", text: current ? `forge-builder · step ${current.n} of 7: ${current.name}` : "forge-builder is working" };
-            else if (pr) now_ = { tone: tests === "fail" ? "bad" : "done", text: `Pull request #${pr.number} · tests ${tests || "not run"} · Proof Agent: ${verdict || "not yet"} · a person decides` };
+            else if (pr) now_ = { tone: tests === "fail" ? "bad" : "idle", text: `Pull request #${pr.number} · tests ${tests} · GitHub Copilot code review: ${review?.status || "unavailable"} · a person decides` };
             else if (completed) now_ = { tone: "done", text: "Build complete" };
             else if (manifestInfo.exists) now_ = { tone: "idle", text: "Dataforge has learned the project. Next: build the metrics in the issue." };
             else if (warehouseInfo.built) now_ = { tone: "idle", text: "Ready. Ask Copilot to initialize dataforge." };
@@ -763,8 +749,8 @@ export function createState({ repoRoot, exampleDir }) {
             s.build.manifest.exists ? `Resolved manifest present (${s.build.manifest.path}).` : "No resolved manifest yet: run forge-init.",
             `Files changed in the example: ${s.build.files.length}.`,
             s.proof.github.pr
-                ? `PR #${s.proof.github.pr.number} (${s.proof.github.pr.state}); Proof Agent: ${s.proof.github.pr.proofAgent?.verdict || "no comment yet"}.`
-                : "No pull request yet.",
+                ? `PR #${s.proof.github.pr.number} (${s.proof.github.pr.state}); acceptance tests: ${s.proof.github.pr.acceptance.status}; GitHub Copilot code review: ${s.proof.github.pr.copilotReview.label}.`
+                : s.proof.github.error ? `GitHub unavailable: ${s.proof.github.error}` : "No pull request yet.",
         ];
         return lines.join("\n");
     }
