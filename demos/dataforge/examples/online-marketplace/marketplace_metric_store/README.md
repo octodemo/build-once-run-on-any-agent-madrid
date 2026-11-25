@@ -11,6 +11,7 @@ marketplace_metric_store/
   common/                      # runners and shared config (not a domain)
   fulfilment/                  # domain
     Order/                     # entity
+    Dispatch/                  # entity
       Code/                    # pipelines, one file per cadence
       Schema/                  # table DDL, one file per grain and cadence
       Schema/Alter/            # column additions to existing tables
@@ -22,7 +23,7 @@ marketplace_metric_store/
 | | |
 | --- | --- |
 | Domains | 1 (`fulfilment`) |
-| Entities built | 1 (`Order`); `dispatch_attempts` is not modelled yet |
+| Entities built | 2 (`Order`, `Dispatch`) |
 | Grains | 1 (`merchant_id`) |
 | Cadences | 2 (Daily, Cumulative) |
 | Tables per entity | 2 |
